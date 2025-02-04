@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>课程信息管理</title>
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div id="app">
+        <el-container>
+            <el-aside width="200px">
+                <el-menu
+                    default-active="3"
+                    class="el-menu-vertical-demo"
+                    background-color="#545c64"
+                    text-color="#fff"
+                    active-text-color="#ffd04b">
+                    <el-menu-item index="1" @click="window.location.href='/'">
+                        <i class="el-icon-user"></i>
+                        <span slot="title">学生管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="2" @click="window.location.href='/teacher.html'">
+                        <i class="el-icon-s-custom"></i>
+                        <span slot="title">教师管理</span>
+                    </el-menu-item>
+                    <el-menu-item index="3" @click="window.location.href='/course.html'">
+                        <i class="el-icon-reading"></i>
+                        <span slot="title">课程管理</span>
+                    </el-menu-item>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <el-header>
+                    <h2>课程信息列表</h2>
+                </el-header>
+                <el-main>
+                    <el-row type="flex" justify="space-between" align="middle" :gutter="20">
+                        <el-col :span="16">
+                            <el-form :inline="true" :model="searchForm" class="search-form">
+                                <el-form-item label="课程编号">
+                                    <el-input v-model="searchForm.Cno" placeholder="请输入课程编号"></el-input>
+                                </el-form-item>
+                                <el-form-item label="课程名称">
+                                    <el-input v-model="searchForm.Cname" placeholder="请输入课程名称"></el-input>
+                                </el-form-item>
+                                <el-form-item label="教师编号">
+                                    <el-input v-model="searchForm.Tno" placeholder="请输入教师编号"></el-input>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" @click="handleSearch">查询</el-button>
+                                    <el-button @click="resetSearch">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </el-col>
+                        <el-col :span="8" style="text-align: right;">
+                            <el-button type="primary" @click="showAddDialog">添加课程</el-button>
+                        </el-col>
+                    </el-row>
+                    <el-table :data="courses" style="width: 100%">
+                        <el-table-column prop="Cno" label="课程编号" width="120"></el-table-column>
+                        <el-table-column prop="Cname" label="课程名称" width="180"></el-table-column>
+                        <el-table-column prop="Chours" label="学时" width="100"></el-table-column>
+                        <el-table-column prop="Credit" label="学分" width="100">
+                            <template slot-scope="scope">
+                                {{ scope.row.Credit.toFixed(1) }}
+                            </template>
+                        </el-table-column>
+                        <el-table-column prop="Tno" label="教师编号" width="120"></el-table-column>
+                        <el-table-column prop="teacher_name" label="教师姓名" width="120"></el-table-column>
+                        <el-table-column prop="StudentCount" label="选课人数" width="100"></el-table-column>
+                        <el-table-column label="操作" width="180">
+                            <template slot-scope="scope">
+                                <el-button size="mini" @click="handleEdit(scope.row)">修改</el-button>
+                                <el-button size="mini" type="danger" @click="handleDelete(scope.row)">删除</el-button>
+                            </template>
+                        </el-table-column>
+                    </el-table>
+
+                    <!-- 添加/编辑对话框 -->
+                    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible">
+                        <el-form :model="form" :rules="rules" ref="form" label-width="100px">
+                            <el-form-item label="课程编号" prop="Cno">
+                                <el-input v-model="form.Cno" :disabled="isEdit" placeholder="请输入课程编号"></el-input>
+                            </el-form-item>
+                            <el-form-item label="课程名称" prop="Cname">
+                                <el-input v-model="form.Cname" placeholder="请输入课程名称"></el-input>
+                            </el-form-item>
+                            <el-form-item label="学时" prop="Chours">
+                                <el-input v-model="form.Chours" placeholder="请输入学时"></el-input>
+                            </el-form-item>
+                            <el-form-item label="学分" prop="Credit">
+                                <el-input-number v-model="form.Credit" :precision="1" :step="0.5" :min="0" placeholder="请输入学分"></el-input-number>
+                            </el-form-item>
+                            <el-form-item label="教师编号" prop="Tno">
+                                <el-input v-model="form.Tno" placeholder="请输入教师编号"></el-input>
+                            </el-form-item>
+                            <el-form-item label="选课人数" prop="StudentCount">
+                                <el-input-number v-model="form.StudentCount" :min="0" placeholder="请输入选课人数"></el-input-number>
+                            </el-form-item>
+                        </el-form>
+                        <div slot="footer" class="dialog-footer">
+                            <el-button @click="dialogVisible = false">取 消</el-button>
+                            <el-button type="primary" @click="submitForm">确 定</el-button>
+                        </div>
+                    </el-dialog>
+                </el-main>
+            </el-container>
+        </el-container>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/static/course.js"></script>
+</body>
+</html> 
